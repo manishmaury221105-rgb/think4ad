@@ -133,14 +133,17 @@ export function usePageSeo(route: AppRoute) {
     const meta = ROUTE_META[route] || ROUTE_META['/'];
     const origin = window.location.origin;
     const canonicalUrl = `${origin}${route === '/' ? '/' : route}`;
+    const shareImage = `${origin}${SITE_CONFIG.images.oohShowcase.src}`;
 
     document.title = meta.title;
     upsertMetaTag('name', 'description', meta.description);
     upsertMetaTag('property', 'og:title', meta.title);
     upsertMetaTag('property', 'og:description', meta.description);
     upsertMetaTag('property', 'og:url', canonicalUrl);
+    upsertMetaTag('property', 'og:image', shareImage);
     upsertMetaTag('name', 'twitter:title', meta.title);
     upsertMetaTag('name', 'twitter:description', meta.description);
+    upsertMetaTag('name', 'twitter:image', shareImage);
     upsertCanonical(canonicalUrl);
     upsertPageSchema(route, meta, canonicalUrl);
   }, [route]);

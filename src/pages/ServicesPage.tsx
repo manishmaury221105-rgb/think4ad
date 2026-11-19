@@ -92,7 +92,7 @@ export const ServicesPage: React.FC = () => {
                   <ResilientImage
                     src={service.image}
                     alt={service.imageAlt}
-                    aspectClassName="aspect-[4/3] lg:h-full"
+                    aspectClassName="aspect-[4/3] lg:aspect-auto lg:h-full lg:min-h-[280px]"
                   />
                 </div>
 

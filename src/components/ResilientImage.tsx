@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { Layers } from 'lucide-react';
 
 interface ResilientImageProps {
@@ -19,6 +19,10 @@ export const ResilientImage: React.FC<ResilientImageProps> = ({
   priority = false,
 }) => {
   const [hasError, setHasError] = useState(false);
+
+  useEffect(() => {
+    setHasError(false);
+  }, [src]);
 
   if (hasError) {
     return (

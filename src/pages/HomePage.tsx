@@ -25,6 +25,7 @@ import { FaqAccordion } from '../components/FaqAccordion';
 export const HomePage: React.FC = () => {
   const { navigate, navigateToSection } = useRouter();
   const [selectedServiceForForm, setSelectedServiceForForm] = useState<string>('General Inquiry');
+  const [serviceSelectionKey, setServiceSelectionKey] = useState<number>(0);
 
   const whatsappUrl = `https://wa.me/${SITE_CONFIG.contact.whatsappNumber}?text=${encodeURIComponent(
     SITE_CONFIG.contact.whatsappDefaultMessage
@@ -32,6 +33,7 @@ export const HomePage: React.FC = () => {
 
   const handleInquiryPreselect = (serviceTitle: string) => {
     setSelectedServiceForForm(serviceTitle);
+    setServiceSelectionKey((prev) => prev + 1);
     navigateToSection('contact', '/');
   };
 
@@ -163,11 +165,18 @@ export const HomePage: React.FC = () => {
             </button>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {SERVICES.map((service) => (
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-6 gap-6">
+            {SERVICES.map((service, idx) => {
+              const spanClass =
+                idx < 2
+                  ? 'lg:col-span-3'
+                  : idx === 4
+                    ? 'md:col-span-2 lg:col-span-2'
+                    : 'lg:col-span-2';
+              return (
               <article
                 key={service.id}
-                className="bg-white border border-slate-200 rounded-xl overflow-hidden flex flex-col justify-between transition-colors hover:border-slate-300"
+                className={`${spanClass} bg-white border border-slate-200 rounded-xl overflow-hidden flex flex-col justify-between transition-colors hover:border-slate-300`}
               >
                 <div>
                   <ResilientImage
@@ -202,12 +211,13 @@ export const HomePage: React.FC = () => {
                   </button>
                 </div>
               </article>
-            ))}
+              );
+            })}
           </div>
         </div>
       </section>
 
-      {/* 3b. Visual Execution Gallery (5 Unique Photos, Minimal Captions) */}
+      {/* 3b. Visual Execution Gallery (9 Unique Photos, Minimal Captions) */}
       <section id="gallery" className="py-12 sm:py-16 bg-white border-b border-slate-200">
         <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 space-y-8">
           <div className="space-y-1">
@@ -407,7 +417,10 @@ export const HomePage: React.FC = () => {
             </div>
 
             <div className="lg:col-span-7">
-              <ContactForm initialService={selectedServiceForForm} />
+              <ContactForm
+                initialService={selectedServiceForForm}
+                selectionKey={serviceSelectionKey}
+              />
             </div>
           </div>
         </div>

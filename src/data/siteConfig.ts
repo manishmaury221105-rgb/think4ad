@@ -69,18 +69,18 @@ export const SITE_CONFIG = {
   social: [
     {
       name: 'YouTube',
-      href: 'https://youtu.be/-ewwUCW79sM?si=O-tptJkqMCZ7Rapb',
+      href: 'https://www.youtube.com/channel/UCzn0ZUYbkBwXdPqlSMiS1XA',
       handle: 'YouTube Channel',
+    },
+    {
+      name: 'Instagram',
+      href: 'https://www.instagram.com/think4ad/',
+      handle: '@think4ad',
     },
     {
       name: 'Pinterest',
       href: 'https://pin.it/kmrZjyGq4',
       handle: 'Pinterest',
-    },
-    {
-      name: 'LinkedIn',
-      href: 'https://www.linkedin.com/in/think-4ad-352073450/',
-      handle: 'LinkedIn',
     },
     {
       name: 'Facebook',

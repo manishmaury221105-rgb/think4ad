@@ -4,6 +4,20 @@ import { SERVICES } from '../data/siteConfig';
 
 interface ContactFormProps {
   initialService?: string;
+  selectionKey?: number;
+}
+
+const VALID_SERVICE_OPTIONS = new Set<string>([
+  'General Inquiry',
+  ...SERVICES.map((svc) => svc.title),
+  'Reference Request',
+]);
+
+function normalizeServiceOption(value?: string): string {
+  if (value && VALID_SERVICE_OPTIONS.has(value)) {
+    return value;
+  }
+  return 'General Inquiry';
 }
 
 interface FormState {
@@ -23,21 +37,24 @@ interface SubmissionReceipt {
   service: string;
 }
 
-export const ContactForm: React.FC<ContactFormProps> = ({ initialService }) => {
+export const ContactForm: React.FC<ContactFormProps> = ({ initialService, selectionKey }) => {
   const [form, setForm] = useState<FormState>({
     name: '',
     email: '',
     phone: '',
     company: '',
-    service: initialService || 'General Inquiry',
+    service: normalizeServiceOption(initialService),
     message: '',
   });
 
   useEffect(() => {
-    if (initialService) {
-      setForm((prev) => ({ ...prev, service: initialService }));
+    const resolved = normalizeServiceOption(initialService);
+    setForm((prev) => ({ ...prev, service: resolved }));
+    if (selectionKey && selectionKey > 0) {
+      setReceipt(null);
+      setServerError(null);
     }
-  }, [initialService]);
+  }, [initialService, selectionKey]);
 
   const [errors, setErrors] = useState<Partial<Record<keyof FormState, string>>>({});
   const [serverError, setServerError] = useState<string | null>(null);
@@ -79,12 +96,16 @@ export const ContactForm: React.FC<ContactFormProps> = ({ initialService }) => {
         body: JSON.stringify(form),
       });
 
-      const data = await response.json();
-      if (!response.ok || !data.ok) {
-        if (data.fieldErrors) {
+      const contentType = response.headers.get('content-type') || '';
+      const data = contentType.includes('application/json') ? await response.json() : null;
+
+      if (!response.ok || !data?.ok) {
+        if (data?.fieldErrors) {
           setErrors(data.fieldErrors);
         }
-        setServerError(data.error || 'Unable to submit your inquiry. Please verify your entries.');
+        setServerError(
+          data?.error || 'Unable to submit your inquiry right now. Please verify your entries or reach us via email/WhatsApp.'
+        );
         return;
       }
 
@@ -181,6 +202,7 @@ export const ContactForm: React.FC<ContactFormProps> = ({ initialService }) => {
             name="name"
             type="text"
             required
+            maxLength={120}
             value={form.name}
             onChange={(e) => {
               setForm({ ...form, name: e.target.value });
@@ -212,6 +234,7 @@ export const ContactForm: React.FC<ContactFormProps> = ({ initialService }) => {
             name="email"
             type="email"
             required
+            maxLength={254}
             value={form.email}
             onChange={(e) => {
               setForm({ ...form, email: e.target.value });
@@ -244,6 +267,7 @@ export const ContactForm: React.FC<ContactFormProps> = ({ initialService }) => {
             id="contact-phone"
             name="phone"
             type="tel"
+            maxLength={20}
             value={form.phone}
             onChange={(e) => {
               setForm({ ...form, phone: e.target.value });
@@ -274,6 +298,7 @@ export const ContactForm: React.FC<ContactFormProps> = ({ initialService }) => {
             id="contact-company"
             name="company"
             type="text"
+            maxLength={120}
             value={form.company}
             onChange={(e) => setForm({ ...form, company: e.target.value })}
             placeholder="Organization name (Optional)"
@@ -312,6 +337,7 @@ export const ContactForm: React.FC<ContactFormProps> = ({ initialService }) => {
           name="message"
           rows={4}
           required
+          maxLength={5000}
           value={form.message}
           onChange={(e) => {
             setForm({ ...form, message: e.target.value });

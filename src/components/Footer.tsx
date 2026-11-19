@@ -5,9 +5,9 @@ import {
   MapPin,
   MessageCircle,
   ArrowUpRight,
-  Linkedin,
   Facebook,
   Youtube,
+  Instagram,
 } from 'lucide-react';
 import { AppRoute, useRouter } from '../lib/router';
 import { SITE_CONFIG } from '../data/siteConfig';
@@ -32,8 +32,8 @@ const PinterestIcon: React.FC = () => (
 
 const SOCIAL_ICON_MAP: Record<string, React.ReactNode> = {
   YouTube: <Youtube className="w-4 h-4" />,
+  Instagram: <Instagram className="w-4 h-4" />,
   Pinterest: <PinterestIcon />,
-  LinkedIn: <Linkedin className="w-4 h-4" />,
   Facebook: <Facebook className="w-4 h-4" />,
 };
 
@@ -52,7 +52,7 @@ export const Footer: React.FC = () => {
 
   return (
     <footer className="bg-slate-950 text-slate-300 border-t border-slate-800">
-      <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-5 sm:py-6">
+      <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 pt-5 pb-20 sm:pt-6 sm:pb-16">
         {/* Line 1: Brand, Navigation & Legal Links, Social Icons */}
         <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
           <a

@@ -6,7 +6,7 @@ import { fileURLToPath } from 'url';
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
-const PORT = 3000;
+const PORT = Number(process.env.PORT) || 3000;
 const isProduction = process.env.NODE_ENV === 'production';
 
 const SITEMAP_ROUTES = [
@@ -35,8 +35,14 @@ function resolveBaseUrl(req: express.Request): string {
   if (process.env.APP_URL && process.env.APP_URL.startsWith('http')) {
     return process.env.APP_URL.replace(/\/+$/, '');
   }
-  const protocol = req.headers['x-forwarded-proto'] || req.protocol || 'https';
-  const host = req.headers['x-forwarded-host'] || req.get('host') || 'think4ad.com';
+  const forwardedProto = req.headers['x-forwarded-proto'];
+  const rawProto = Array.isArray(forwardedProto) ? forwardedProto[0] : forwardedProto;
+  const protocol = (rawProto ? rawProto.split(',')[0].trim() : req.protocol) || 'https';
+
+  const forwardedHost = req.headers['x-forwarded-host'];
+  const rawHost = Array.isArray(forwardedHost) ? forwardedHost[0] : forwardedHost;
+  const host = (rawHost ? rawHost.split(',')[0].trim() : req.get('host')) || 'think4ad.com';
+
   return `${protocol}://${host}`;
 }
 
@@ -59,18 +65,18 @@ async function startServer() {
 
     const fieldErrors: Record<string, string> = {};
 
-    if (name.length < 2) {
-      fieldErrors.name = 'Please enter your full name (at least 2 characters).';
+    if (name.length < 2 || name.length > 120) {
+      fieldErrors.name = 'Please enter your full name (2 to 120 characters).';
     }
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    if (!emailRegex.test(email)) {
+    if (!emailRegex.test(email) || email.length > 254) {
       fieldErrors.email = 'Please provide a valid email address.';
     }
     if (phone && !/^[+\d\s()-]{7,20}$/.test(phone)) {
       fieldErrors.phone = 'Please enter a valid phone number or leave this field blank.';
     }
-    if (message.length < 10) {
-      fieldErrors.message = 'Please share a brief description of your requirements (at least 10 characters).';
+    if (message.length < 10 || message.length > 5000) {
+      fieldErrors.message = 'Please share a brief description of your requirements (10 to 5000 characters).';
     }
 
     if (Object.keys(fieldErrors).length > 0) {
@@ -161,8 +167,23 @@ ${urls}
     });
   }
 
+  app.use(
+    (
+      err: unknown,
+      req: express.Request,
+      res: express.Response,
+      next: express.NextFunction
+    ) => {
+      if (req.path.startsWith('/api/') && err instanceof SyntaxError) {
+        res.status(400).json({ ok: false, error: 'Invalid JSON request body.' });
+        return;
+      }
+      next(err);
+    }
+  );
+
   app.listen(PORT, '0.0.0.0', () => {
-    console.log(`Aapaakad.com server listening on http://0.0.0.0:${PORT}`);
+    console.log(`Think4AD server listening on http://0.0.0.0:${PORT}`);
   });
 }
 

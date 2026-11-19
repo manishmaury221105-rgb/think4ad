@@ -44,29 +44,43 @@ export const RouterProvider: React.FC<{ children: React.ReactNode }> = ({ childr
     normalizePath(window.location.pathname)
   );
   const [searchString, setSearchString] = useState<string>(() => window.location.search);
+  const pendingHashRef = React.useRef<string | null>(
+    window.location.hash ? window.location.hash.replace(/^#/, '') : null
+  );
+
+  const scrollToElement = useCallback((elementId: string) => {
+    window.requestAnimationFrame(() => {
+      window.requestAnimationFrame(() => {
+        const target = document.getElementById(elementId);
+        if (target) {
+          const headerOffset = 84;
+          const elementPosition = target.getBoundingClientRect().top + window.scrollY;
+          window.scrollTo({
+            top: Math.max(0, elementPosition - headerOffset),
+            behavior: 'smooth',
+          });
+        }
+      });
+    });
+  }, []);
 
   useEffect(() => {
     const handlePopState = () => {
       setCurrentPath(normalizePath(window.location.pathname));
       setSearchString(window.location.search);
+      pendingHashRef.current = window.location.hash ? window.location.hash.replace(/^#/, '') : null;
     };
     window.addEventListener('popstate', handlePopState);
     return () => window.removeEventListener('popstate', handlePopState);
   }, []);
 
-  const scrollToElement = useCallback((elementId: string) => {
-    window.requestAnimationFrame(() => {
-      const target = document.getElementById(elementId);
-      if (target) {
-        const headerOffset = 84;
-        const elementPosition = target.getBoundingClientRect().top + window.scrollY;
-        window.scrollTo({
-          top: Math.max(0, elementPosition - headerOffset),
-          behavior: 'smooth',
-        });
-      }
-    });
-  }, []);
+  useEffect(() => {
+    if (pendingHashRef.current) {
+      const targetId = pendingHashRef.current;
+      pendingHashRef.current = null;
+      scrollToElement(targetId);
+    }
+  }, [currentPath, scrollToElement]);
 
   const navigate = useCallback(
     (to: AppRoute, options?: NavigateOptions) => {
@@ -78,17 +92,23 @@ export const RouterProvider: React.FC<{ children: React.ReactNode }> = ({ childr
       if (window.location.pathname + window.location.search + window.location.hash !== nextUrl) {
         window.history.pushState({}, '', nextUrl);
       }
-      setCurrentPath(normalized);
-      setSearchString(searchPart);
 
       if (options?.hash) {
         const id = options.hash.replace(/^#/, '');
-        setTimeout(() => scrollToElement(id), 60);
+        if (currentPath === normalized) {
+          scrollToElement(id);
+        } else {
+          pendingHashRef.current = id;
+        }
       } else {
+        pendingHashRef.current = null;
         window.scrollTo({ top: 0, behavior: 'smooth' });
       }
+
+      setCurrentPath(normalized);
+      setSearchString(searchPart);
     },
-    [scrollToElement]
+    [currentPath, scrollToElement]
   );
 
   const navigateToSection = useCallback(
